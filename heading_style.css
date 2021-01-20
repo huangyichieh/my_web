@@ -79,7 +79,7 @@ header {
 
 .navigation a li{
     display: block;
-    margin-top: 30px;
+    margin-top: 5vh;
     color: white;
     font-family: 'Cabin Sketch';
     font-size: 16px;
