@@ -1,0 +1,102 @@
+*{
+    margin: 0;
+    padding: 0;
+    top: 0;
+    left: 0;
+}
+
+/*For site header*/
+header {
+    width: 100%;
+    height: 10vh;
+    display: block;
+    position: fixed;
+    background-color: rgb(40, 40, 40);
+    animation: heading;
+    animation-duration: 1s;
+    animation-fill-mode: forwards;
+}
+
+@keyframes heading {
+    0%      {top: -50px}
+    100%    {top: 0px}
+}
+
+.inner_header {
+    width: 70%;
+    height: 100%;
+    display: block;
+    margin: 0 auto;
+}
+
+.logo_container{
+    height: 100%;
+    display: table;
+    float: left;
+    transition-property: all;
+    transition-duration: 0.5s;
+}
+
+.logo_container:hover{
+    transform: rotateY(40deg);
+}
+
+.logo_container h1{
+    color: white;
+    height: 100%;
+    display: table-cell;
+    vertical-align: middle;
+    font-family: 'Kranky';
+    font-size: 40px;
+    font-weight: 200;
+}
+
+.logo_container h2{
+    color: white;
+    height: 100%;
+    display: table-cell;
+    vertical-align: middle;
+    padding-top: 7px;
+    font-family: 'Fascinate Inline';
+    font-size: 25px;
+    font-weight: 200;
+}
+
+.navigation{
+    float: right;
+    height: 100%;
+    display: table;
+    margin-top: 0;
+    padding-left: 0;
+}
+
+.navigation a{
+    height: 100%;
+    display: table-cell;
+    padding: 0px 20px;
+    text-decoration: none;
+}
+
+.navigation a li{
+    display: block;
+    margin-top: 30px;
+    color: white;
+    font-family: 'Cabin Sketch';
+    font-size: 16px;
+    transition-property: all;
+    transition-duration: 0.2s;
+}
+
+.navigation a li:hover{
+    -webkit-transform: scale(1.4);
+}
+
+.noselect {
+    -webkit-touch-callout: none; /* iOS Safari */
+      -webkit-user-select: none; /* Safari */
+       -khtml-user-select: none; /* Konqueror HTML */
+         -moz-user-select: none; /* Old versions of Firefox */
+          -ms-user-select: none; /* Internet Explorer/Edge */
+              user-select: none; /* Non-prefixed version, currently
+                                    supported by Chrome, Edge, Opera and Firefox */
+  }

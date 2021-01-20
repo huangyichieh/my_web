@@ -1,0 +1,17 @@
+.table_content{
+    width: auto;
+    height: 100vh;
+    background-color: #233A51;
+}
+
+.title{
+    width: auto;
+    height: auto;
+    padding-left: 10vw;
+    padding-top: 17vh;
+    margin: 0 auto;
+    font-size: 20vh;
+    font-family: 'Cabin Sketch';
+    color: #79B2EB;
+    /* background-color: red; */
+}

@@ -1,0 +1,116 @@
+.table_content{
+    width: auto;
+    height: 100vh;
+    background-color: #233A51;
+}
+
+.title{
+    width: auto;
+    height: auto;
+    padding-left: 10vw;
+    padding-top: 17vh;
+    margin: 0 auto;
+    font-size: 20vh;
+    font-family: 'Cabin Sketch';
+    color: #79B2EB;
+    /* background-color: red; */
+}
+
+.menu{
+    width: 100%;
+    height: auto;
+    margin: 0 auto;
+    /* background-color: red;; */
+}
+
+.icon_row{
+    width: auto;
+    height: auto;
+    padding-top: 5vh;
+    display: table;
+    margin: 0 auto;
+}
+
+.game_icon{
+    width: 20vw;
+    height: auto;
+    display: table-cell;
+    fill: transparent;
+    transition: 0.5s;
+    pointer-events: bounding-box;
+}
+
+.game_icon:hover{
+    transform: scale(1.3);
+}
+
+.icon_border{
+    stroke: #8FD5CF;
+    stroke-width: 2px;
+}
+
+.icon_border.border_loop{
+    animation: loop_effect 4s;
+}
+
+@keyframes loop_effect{
+    0%      {stroke-dasharray: 1000;stroke-dashoffset: 1000;}
+    90%     {stroke-dasharray: 1000;stroke-dashoffset: 0;}
+}
+
+.icon_logo{
+    stroke: #8FD5CF;
+    stroke-width: 2px;
+}
+
+.icon_logo.tetris_hover{
+    animation: tetris_rotate 2s;
+    transform-origin: center;
+}
+
+@keyframes tetris_rotate{
+    5%      {transform: rotate(2deg);fill: #8FD5CF;}
+    10%     {transform: rotate(-2deg);}
+    15%     {transform: rotate(2deg);}
+    20%     {transform: rotate(-2deg);}
+    40%     {transform: rotate(95deg);}
+    45%     {transform: rotate(85deg);}
+    50%     {transform: rotate(90deg);fill: transparent;}
+    60%     {transform: rotate(90deg);fill: #8FD5CF;}
+    65%     {transform: rotate(85deg);}
+    70%     {transform: rotate(95deg);}
+    75%     {transform: rotate(85deg);}
+    80%     {transform: rotate(95deg);}
+}
+
+.icon_logo.music_hover{
+    animation: note_flicker 2s;
+}
+
+@keyframes note_flicker{
+    15%     {fill: red; stroke: red;}
+    30%     {fill: yellow; stroke: yellow;}
+    45%     {fill: green; stroke: green;}
+    60%     {fill: cyan; stroke: cyan;}
+    75%     {fill: blue; stroke: blue;}
+    90%     {fill: purple; stroke: purple;}
+}
+
+.icon_logo.snake_hover{
+    animation: snake_fill 2s;
+    transform-origin: center;
+}
+
+@keyframes snake_fill{
+    5%     {transform: rotate(5deg);}
+    10%     {transform: rotate(-5deg);}
+    15%     {transform: rotate(5deg);}
+    20%     {transform: rotate(-5deg);}
+    25%     {transform: rotate(5deg);}
+    30%     {transform: rotate(-5deg);}
+    60%     {fill: #8FD5CF;transform: rotate(0deg);stroke-width: 1px;}
+}
+
+.icon_text{
+    fill: #8FD5CF;
+}
