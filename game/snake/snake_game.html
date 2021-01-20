@@ -6,6 +6,31 @@
     <link href="https://fonts.googleapis.com/css2?family=Cabin+Sketch&display=swap" rel="stylesheet">
     <link rel=stylesheet type="text/css" href="../../heading_style.css">
     <title>J-Web</title>
+    <style>
+        body {
+            height: 100vh;
+            width: 100vw;
+            display: flex; /* Need survey */
+            justify-content: center;
+            align-items:center;
+            margin: 0;
+            background-color: blue;
+        }
+
+        #game_board {
+            background-color: black;
+            width: 80vmin;
+            height: 80vmin;
+            display: grid;
+            margin-top: 10vmin;
+            grid-template-rows: repeat(51, 1fr);
+            grid-template-columns: repeat(51, 1fr);
+        }
+
+        .snake {
+            background-color: white;
+        }
+    </style>
 </head>
 <body>
     <header>
@@ -15,12 +40,14 @@
             </div>
 
             <ul class="navigation noselect">
-                <a href="../about/about_me.html"><li>About</li></a>
-                <a href="../web/web_menu.html"><li>Webs</li></a>
-                <a href="../game/game_menu.html"><li>Games</li></a>
+                <a href="../../about/about_me.html"><li>About</li></a>
+                <a href="../../web/web_menu.html"><li>Webs</li></a>
+                <a href="../../game/game_menu.html"><li>Games</li></a>
             </ul>
         </div>
     </header>
+    <div id = "game_board" ></div>
+
     <script>
         // ----------------for directing links----------------
         document.getElementById("logo_link").onclick = function () {
