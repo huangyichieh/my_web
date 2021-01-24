@@ -1,9 +1,11 @@
-import {getInputDirection} from './input.js'
-export const SNAKE_SPEED = 8; // how many grids per second
+import {getInputDirection} from './input.js';
+export const SNAKE_SPEED = 5; // how many grids per second
 
-const snakeBody = [{x:26, y:26}]; // initial snake position and with length 1
+const snakeBody = [{x:11, y:11}]; // initial snake position and with length 1
+let newSegment = 0;
 
 export function update() {
+    addSegment();
     const currentDirection = getInputDirection();
     moveSnake(snakeBody, currentDirection);
 }
@@ -46,4 +48,34 @@ export function draw(gameboard) {
         snakeElement.classList.add('snake');
         gameboard.appendChild(snakeElement);
     })
+}
+
+export function expandSnake(amount){
+    newSegment+=amount;
+}
+
+export function onSnake(position, {ignoreHead = false} = {}){ // Second arg. is an optional input so assign it to {}
+    return snakeBody.some((part, index) => {
+        if(ignoreHead && index === 0) return false;
+        return equalPositions(part,position);
+    })
+}
+
+export function snakeIntersection(){
+    return onSnake(getSnakeHead(), {ignoreHead : true});
+}
+
+export function getSnakeHead(){
+    return snakeBody[0];
+}
+
+function addSegment(){
+    for(let i = 0; i < newSegment; i++){
+        snakeBody.push({...snakeBody[snakeBody.length-1]});
+    }
+    newSegment = 0;
+}
+
+function equalPositions(pos1, pos2){
+    return (pos1.x === pos2.x && pos1.y === pos2.y);
 }
