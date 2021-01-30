@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link href="https://fonts.googleapis.com/css2?family=Fascinate+Inline&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Kranky&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cabin+Sketch&display=swap" rel="stylesheet">
+    <link rel=stylesheet type="text/css" href="../../heading_style.css">
+    <link rel=stylesheet type="text/css" href="tetris_game_style.css">
+    <title>J-Web</title>
+</head>
+
+<body>
+    <header>
+        <div class="inner_header">
+            <div class="logo_container noselect" id="logo_link">
+                <h1>J</h1><h2>Web</h2>
+            </div>
+
+            <ul class="navigation noselect">
+                <a href="../../about/about_me.html"><li>About</li></a>
+                <a href="../../web/web_menu.html"><li>Webs</li></a>
+                <a href="../../game/game_menu.html"><li>Games</li></a>
+            </ul>
+        </div>
+    </header>
+
+    <div class="table_content">
+        <div class="game_display">
+            <select id="resolution_select" name="Screen Resolution:" onchange="AdjustResolution();">
+                <option value="" selected>Select screen resolution</option>
+                <option value="480x320">480 x 320</option>
+                <option value="640x360">640 x 480</option>
+                <option value="800x600">800 x 600</option>
+                <option value="1024x600">1024 x 768</option>
+                <option value="stretch">Stretch to full</option>
+            </select>
+            <canvas class="game_canvas" id="myCanvas" width="480" height="320"></canvas>
+        </div>
+    </div>
+    
+    <script>
+        // ----------------for directing links----------------
+        document.getElementById("logo_link").onclick = function () {
+            location.href = "../../index.html";
+        };
+
+        // ----------------Adjust Resolution----------------
+        var res_selector = document.getElementById("resolution_select");
+        function AdjustResolution() {
+            if (res_selector.value == "stretch") {
+                var effective_w = 0.6 * window.innerWidth;
+                var effective_h = 0.75 * window.innerHeight;
+
+                if (effective_w / effective_h > 1.34) {
+                    canvas.setAttribute("width", effective_h * 1.34);
+                    canvas.setAttribute("height", effective_h);
+                }
+                else {
+                    canvas.setAttribute("width", effective_w);
+                    canvas.setAttribute("height", effective_w / 1.34);     
+                }
+            }
+            else {
+                var string_val = res_selector.value.toString();
+                var res_set = string_val.split("x");
+                canvas.setAttribute("width", res_set[0]);
+                canvas.setAttribute("height", res_set[1]);
+            }
+        }
+
+        // ----------------for game control----------------
+        const TETRIS_TABLE_ROW = 20;
+        const TETRIS_TABLE_COL = 10;
+        var tetris_table = [
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        ];
+        // a 20 x 10 grid for tetris
+        // 0 stands for no block, 1 for static block, 2 for active block
+        var frame_count = 0;
+        
+        function getRandomInt(max) {
+            return Math.floor(Math.random() * Math.floor(max));
+        }
+        class tetrisBlock {
+            constructor(initial_coord, rotate_origin) {
+                this.block_coord = initial_coord;
+                this.rotate_origin = rotate_origin;
+            }
+
+            rotate() {
+                var rotated_coord = []
+                for(var i = 0; i < this.block_coord.length; i++) {
+                    var coord = this.block_coord[i];
+                    var calib_x = coord[0] - this.rotate_origin[0];
+                    var calib_y = coord[1] - this.rotate_origin[1];
+                    var rotate_x = -calib_y;
+                    var rotate_y = calib_x;
+                    var a = rotate_y + this.rotate_origin[1];
+                    rotated_coord.push([rotate_x + this.rotate_origin[0], rotate_y + this.rotate_origin[1]]);
+                }
+                this.block_coord = rotated_coord;
+            }
+
+            length(){
+                var min = 1000;
+                var max = -1000;
+                for(var i = 0; i < this.block_coord.length; i++) {
+                    var coord = this.block_coord[i];
+                    if(coord[0] < min) {
+                        min = coord[0];
+                    }
+                    if(coord[0] > max) {
+                        max = coord[0];
+                    }
+                }
+                return (max - min + 1);
+            }
+
+            height() {
+                var min = 1000;
+                var max = -1000;
+                for(var i = 0; i < this.block_coord.length; i++) {
+                    var coord = this.block_coord[i];
+                    if(coord[1] < min) {
+                        min = coord[1];
+                    }
+                    if(coord[1] > max) {
+                        max = coord[1];
+                    }
+                }
+                return (max - min + 1);
+            }
+
+            copy() {
+                return new tetrisBlock(this.block_coord, this.rotate_origin);
+            }
+        }
+        class tetrisBlockGenerator {
+            constructor(num_wait) {
+                this.legal_block = [
+                    new tetrisBlock([[0, 0], [1, 0], [0, 1], [1, 1]], [0.5, 0.5]), // block o
+                    new tetrisBlock([[0, 0], [1, 0], [2, 0], [3, 0]], [1.5, -0.5]), // block l
+                    new tetrisBlock([[1, 0], [2, 0], [0, 1], [1, 1]], [1, 0]), // block s
+                    new tetrisBlock([[0, 0], [1, 0], [1, 1], [2, 1]], [1, 0]), // block z
+                    new tetrisBlock([[2, 0], [0, 1], [1, 1], [2, 1]], [1, 1]), // block L
+                    new tetrisBlock([[0, 0], [0, 1], [1, 1], [2, 1]], [1, 1]), // block J
+                    new tetrisBlock([[0, 0], [1, 0], [2, 0], [1, 1]], [1, 0])  // block T
+                ]
+
+                this.wait_list = [];
+                for(var i = 0; i < num_wait; i++) {
+                    this.wait_list.push(this.legal_block[getRandomInt(7)].copy());
+                }
+            }
+
+            genBlock() {
+                var next_block = this.wait_list.pop();
+                this.wait_list.push(this.legal_block[getRandomInt(7)].copy());
+                return next_block;
+            }
+        }
+
+        class activeBlock {
+            constructor(block) {
+                if (block instanceof tetrisBlock) {
+                    this.block = block;
+                    this.position = [0, 0];
+                    this.settle = false;
+                }
+                else {
+                    alert("Javascript: something went wrong!!!");
+                }
+            }
+
+            draw(settle) {
+                if(this.settle) {
+                    // block already settle
+                    return 0;
+                }
+
+                // erase previous block
+                for(var h = 0; h < 20; h++) {
+                    for(var w = 0; w < 10; w++) {
+                        if (tetris_table[h][w] == 2) {
+                            tetris_table[h][w] = 0;
+                        }
+                    }
+                }
+
+                // set new position to 2
+                var fill_number = settle? 1 : 2;
+                for(var i = 0; i < this.block.block_coord.length; i++) {
+                    var coord = this.block.block_coord[i];
+                    if (
+                        this.position[0] + coord[0] >= 0 && this.position[0] + coord[0] < 10 &&
+                        this.position[1] + coord[1] >= 0 && this.position[1] + coord[1] < 20
+                    ) {
+                        tetris_table[this.position[1] + coord[1]][this.position[0] + coord[0]] = fill_number;
+                    }
+                }
+                this.settle = settle ? true : false;
+            }
+
+            init() {
+                var x_offset = Math.floor((10 - this.block.length()) / 2);
+                var y_offset = 0;
+                for(;; y_offset--) {
+                    var legal_block = true;
+                    for(var i = 0; i < this.block.block_coord.length; i++) {
+                        var coord = this.block.block_coord[i];
+                        var a = y_offset + coord[1];
+                        var b = x_offset + coord[0];
+                        if(y_offset + coord[1] >= 0) {
+                            if(tetris_table[y_offset + coord[1]][x_offset + coord[0]] == 1) {
+                                legal_block = false;
+                                break;
+                            }
+                        }
+                    }
+                    if(legal_block == true) {
+                        break;
+                    }
+                }
+
+                if(y_offset <= -this.block.height()) {
+                    // init fail game end
+                    this.settle = true;
+                    return 0;
+                }
+                else {
+                    // draw block
+                    this.position[0] = x_offset;
+                    this.position[1] = y_offset;
+                    this.draw();
+                    return 1;
+                }
+            }
+
+            down() {
+                var x_offset = this.position[0];
+                var y_offset = this.position[1];
+                var legal_block = true;
+                
+                if(legal_block) {
+                    for(var i = 0; i < this.block.block_coord.length; i++) {
+                        var coord = this.block.block_coord[i];
+                        if(y_offset + coord[1] + 1 >= 20) {
+                            legal_block = false;
+                            break;
+                        }
+                        if(y_offset + coord[1] + 1 >= 0) {
+                            if(tetris_table[y_offset + coord[1] + 1][x_offset + coord[0]] == 1) {
+                                legal_block = false;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if(legal_block) {
+                    this.position[1] += 1;
+                    this.draw();
+                    return 1;
+                }
+                else {
+                    // block settle
+                    this.draw(true);
+                    return 0;
+                }
+            }
+
+            left() {
+                var x_offset = this.position[0];
+                var y_offset = this.position[1];
+                var legal_block = true;
+                
+                if(legal_block) {
+                    for(var i = 0; i < this.block.block_coord.length; i++) {
+                        var coord = this.block.block_coord[i];
+                        if(x_offset + coord[0] - 1 < 0) {
+                            legal_block = false;
+                            break;
+                        }
+                        if(y_offset + coord[1] >= 0) {
+                            if(tetris_table[y_offset + coord[1]][x_offset + coord[0] - 1] == 1) {
+                                legal_block = false;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if(legal_block) {
+                    this.position[0] -= 1;
+                    this.draw();
+                    return 1;
+                }
+                else {
+                    return 0;
+                }
+            }
+
+            right() {
+                var x_offset = this.position[0];
+                var y_offset = this.position[1];
+                var legal_block = true;
+                
+                if(legal_block) {
+                    for(var i = 0; i < this.block.block_coord.length; i++) {
+                        var coord = this.block.block_coord[i];
+                        if(x_offset + coord[0] + 1 >= 10) {
+                            legal_block = false;
+                            break;
+                        }
+                        if(y_offset + coord[1] >= 0) {
+                            if(tetris_table[y_offset + coord[1]][x_offset + coord[0] + 1] == 1) {
+                                legal_block = false;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if(legal_block) {
+                    this.position[0] += 1;
+                    this.draw();
+                    return 1;
+                }
+                else {
+                    return 0;
+                }
+            }
+
+            rotate() {
+                var try_rotate = this.block.copy();
+                try_rotate.rotate();
+                
+                var x_offset = this.position[0];
+                var y_offset = this.position[1];
+                var acceptable_d = [];
+
+                // try move left or right if not rotatable
+                var half_length = Math.ceil(try_rotate.length() / 2);
+                for(var d = -half_length; d <= half_length; d++) {
+                    x_offset = this.position[0] + d;
+                    y_offset = this.position[1];
+                    var legal_block = true;
+
+                    for(var i = 0; i < try_rotate.block_coord.length; i++) {
+                        var coord = try_rotate.block_coord[i];
+                        if(y_offset + coord[1] >= 0) { 
+                            if(
+                                x_offset + coord[0] >= 10 || x_offset + coord[0] < 0 ||
+                                tetris_table[y_offset + coord[1]][x_offset + coord[0]] == 1
+                            ) {
+                                legal_block = false;
+                                break;
+                            }
+                        }
+                    }
+
+                    if(legal_block) {
+                        acceptable_d.push(d);
+                    }
+                }
+
+                // not rotatble
+                if(acceptable_d.length == 0) {
+                    return 0;
+                }
+
+                // rotatable
+                var min_d = 1000;
+                for(var i = 0; i < acceptable_d.length; i++) {
+                    if(Math.abs(min_d) > Math.abs(acceptable_d[i])) {
+                        min_d = acceptable_d[i];
+                    }
+                }
+                this.position[0] += min_d;
+                this.block.rotate();
+                this.draw();
+                return 1;
+            }
+
+            illegal_settle() {
+                if(this.settle) {
+                    for(var i = 0; i < this.block.block_coord.length; i++) {
+                        var coord = this.block.block_coord[i];
+                        var h = this.position[1] + coord[1];
+                        if(this.position[1] + coord[1] < 0) {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            }
+        }
+
+        var block_gen = new tetrisBlockGenerator(2);
+        var active_block = null;
+        var game_status = 1; // 1 for start, 0 for pause, -1 for end
+
+        var canvas = document.getElementById("myCanvas");
+        var ctx = canvas.getContext("2d");
+        var frame_count = 0;
+        function start_game() {
+            // draw background
+            ctx.beginPath();
+            ctx.rect(0, 0, canvas.offsetWidth, canvas.offsetHeight);
+            ctx.fillStyle = "#000000";
+            ctx.fill();
+            ctx.closePath();
+
+            // draw game area
+            var tetris_area_w = 0.5 * canvas.offsetHeight;
+            var tetris_area_h = canvas.offsetHeight;
+            var tetris_area_offset = 0.5 * canvas.offsetWidth - 0.5 * tetris_area_w;
+            var tetris_block_w = tetris_area_w / 10; // same as block height
+            ctx.beginPath();
+            ctx.rect(tetris_area_offset, 0, tetris_area_w, tetris_area_h);
+            ctx.fillStyle = "#111111";
+            ctx.fill();
+            ctx.closePath();
+
+            for(var h = 0; h < 20; h++) {
+                for(var w = 0; w < 10; w++) {
+                    if (tetris_table[h][w] != 0) {
+                        ctx.beginPath();
+                        ctx.rect(tetris_area_offset + w * tetris_block_w, h * tetris_block_w, tetris_block_w, tetris_block_w);
+                        ctx.fillStyle = "#FFFFFF";
+                        ctx.fill();
+                        ctx.strokeStyle = "000000";
+                        ctx.stroke();
+                        ctx.closePath();
+                    }
+                }
+            }
+
+            if (game_status == 1) {
+                // Game on progress
+                if (active_block == null) {
+                    active_block = new activeBlock(block_gen.genBlock());
+                    var init_status = active_block.init();
+                    game_status = init_status == 1? 1 : -1;
+                }
+                else {
+                    frame_count++;
+                    if(frame_count >= 80) {
+                        var is_block_active = active_block.down();
+                        if(is_block_active == 0) {
+                            if(active_block.illegal_settle()) {
+                                game_status = -1;
+                            }
+                            else {
+                                // check any complete row
+                                for(var h = 0; h < 20; h++) {
+                                    var complete_row = true;
+                                    for(var w = 0; w < 10; w++) {
+                                        if(tetris_table[h][w] == 0) {
+                                            complete_row = false;
+                                        }
+                                    }
+                                    if(complete_row) {
+                                        tetris_table.splice(h, 1);
+                                        tetris_table.unshift([0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+                                    }
+                                }
+
+                                // reset block
+                                active_block = null;
+                            }
+                        }
+                        frame_count = 0;
+                    }
+                }
+            }
+            else if(game_status == 0) {
+                // Game pause
+                ctx.beginPath();
+                ctx.font = "35px Cabin Sketch";
+                ctx.fillStyle = "red";
+                ctx.textAlign = "center";
+                ctx.fillText("PAUSE", canvas.offsetWidth / 2,  canvas.offsetHeight / 2 - 3 * tetris_block_w);
+                
+                ctx.font = "20px Cabin Sketch";
+                ctx.fillStyle = "red";
+                ctx.textAlign = "center";
+                ctx.fillText("Press \"Enter\" to continue", canvas.offsetWidth / 2,  canvas.offsetHeight / 2);
+            }
+            else {
+                // Game end
+                ctx.font = "35px Cabin Sketch";
+                ctx.fillStyle = "red";
+                ctx.textAlign = "center";
+                ctx.fillText("YOU LOOSE", canvas.offsetWidth / 2,  canvas.offsetHeight / 2 - 3 * tetris_block_w);
+                
+                ctx.font = "20px Cabin Sketch";
+                ctx.fillStyle = "red";
+                ctx.textAlign = "center";
+                ctx.fillText("Press \"Enter\" to restart", canvas.offsetWidth / 2,  canvas.offsetHeight / 2);
+            }
+        }
+        setInterval(start_game, 10); // fps 100
+
+        // keyboard events
+        window.addEventListener('keydown', e => {
+            switch(e.key){
+                case 'ArrowUp':
+                    // Rotate
+                    if(active_block != null) {
+                        active_block.rotate();
+                    }
+                    break;
+                case 'ArrowLeft':
+                    if(active_block != null) {
+                        active_block.left();
+                    }
+                    break;
+                case 'ArrowRight':
+                    if(active_block != null) {
+                        active_block.right();
+                    }
+                    break;
+                case 'ArrowDown':
+                    if(active_block != null) {
+                        active_block.down();
+                    }
+                    break;
+                case 'Enter':
+                    if(game_status == 1) {
+                        game_status = 0;
+                    }
+                    else if(game_status == 0) {
+                        game_status = 1;
+                    }
+                    else if(game_status == -1) {
+                        for(var h = 0; h < 20; h++) {
+                            for(var w = 0; w < 10; w++) {
+                                tetris_table[h][w] = 0;
+                            }
+                        }
+                        active_block = null;
+                        game_status = 1;
+                    }
+            } 
+        });
+    </script>
+</body>
+
+</html>

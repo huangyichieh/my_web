@@ -1,0 +1,24 @@
+.table_content{
+    width: auto;
+    height: 100vh;
+    background-color: #233A51;
+}
+
+.game_display{
+    width: 80vw;
+    height: auto;
+    margin: 0 auto;
+    padding-top: 10vh;
+    /* background-color: brown; */
+}
+
+.game_display select{
+    margin: 2vh auto;
+    padding: 1vh 1vw;
+    display: block;
+}
+
+.game_canvas{
+    margin: 0 auto;
+    display: block;
+}
