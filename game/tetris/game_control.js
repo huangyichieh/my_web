@@ -13,6 +13,16 @@ const STATIC_BLOCK_TAG_z = 'z';
 const STATIC_BLOCK_TAG_L = 'L';
 const STATIC_BLOCK_TAG_J = 'J';
 const STATIC_BLOCK_TAG_T = 'T';
+const BLOCK_TAG_TO_COLOR = new Map([
+    [ACTIVE_BLOCK_TAG, "#FFFFFF"],
+    [STATIC_BLOCK_TAG_o, "#FFFF3C"],
+    [STATIC_BLOCK_TAG_l, "#38FEFF"],
+    [STATIC_BLOCK_TAG_s, "#19FF14"],
+    [STATIC_BLOCK_TAG_z, "#F63F3C"],
+    [STATIC_BLOCK_TAG_L, "#FF8D14"],
+    [STATIC_BLOCK_TAG_J, "#1421FF"],
+    [STATIC_BLOCK_TAG_T, "#D922FF"]
+]);
 var tetris_table = [
     ['', '', '', '', '', '', '', '', '', ''],
     ['', '', '', '', '', '', '', '', '', ''],
@@ -36,7 +46,7 @@ var tetris_table = [
     ['', '', '', '', '', '', '', '', '', '']
 ];
 // a 20 x 10 grid for tetris
-// 0 stands for no block, 1 for static block, 2 for active block
+// '' stands for no block, otherwise follow block tag above
 var frame_count = 0;
 function getRandomInt(max) {
     return Math.floor(Math.random() * Math.floor(max));
@@ -129,7 +139,6 @@ class activeBlock {
             this.block = block;
             this.position = [0, 0];
             this.settle = false;
-            this.block_tag = ACTIVE_BLOCK_TAG;
         }
         else {
             alert("Javascript: something went wrong!!!");
@@ -145,14 +154,14 @@ class activeBlock {
         // erase previous block
         for(var h = 0; h < TETRIS_TABLE_ROW; h++) {
             for(var w = 0; w < TETRIS_TABLE_COL; w++) {
-                if (tetris_table[h][w] == 2) {
-                    tetris_table[h][w] = 0;
+                if (tetris_table[h][w] == ACTIVE_BLOCK_TAG) {
+                    tetris_table[h][w] = '';
                 }
             }
         }
 
         // set new position to 2
-        var fill_number = settle? 1 : 2;
+        var fill_number = settle? this.block.block_tag : ACTIVE_BLOCK_TAG;
         for(var i = 0; i < this.block.block_coord.length; i++) {
             var coord = this.block.block_coord[i];
             if (
@@ -175,7 +184,10 @@ class activeBlock {
                 var a = y_offset + coord[1];
                 var b = x_offset + coord[0];
                 if(y_offset + coord[1] >= 0) {
-                    if(tetris_table[y_offset + coord[1]][x_offset + coord[0]] == 1) {
+                    if(
+                        tetris_table[y_offset + coord[1]][x_offset + coord[0]] != '' &&
+                        tetris_table[y_offset + coord[1]][x_offset + coord[0]] != 'A'
+                    ) {
                         legal_block = false;
                         break;
                     }
@@ -213,7 +225,10 @@ class activeBlock {
                     break;
                 }
                 if(y_offset + coord[1] + 1 >= 0) {
-                    if(tetris_table[y_offset + coord[1] + 1][x_offset + coord[0]] == 1) {
+                    if(
+                        tetris_table[y_offset + coord[1] + 1][x_offset + coord[0]] != '' &&
+                        tetris_table[y_offset + coord[1] + 1][x_offset + coord[0]] != 'A'
+                    ) {
                         legal_block = false;
                         break;
                     }
@@ -246,7 +261,10 @@ class activeBlock {
                     break;
                 }
                 if(y_offset + coord[1] >= 0) {
-                    if(tetris_table[y_offset + coord[1]][x_offset + coord[0] - 1] == 1) {
+                    if(
+                        tetris_table[y_offset + coord[1]][x_offset + coord[0] - 1] != '' &&
+                        tetris_table[y_offset + coord[1]][x_offset + coord[0] - 1] != 'A'
+                    ) {
                         legal_block = false;
                         break;
                     }
@@ -277,7 +295,10 @@ class activeBlock {
                     break;
                 }
                 if(y_offset + coord[1] >= 0) {
-                    if(tetris_table[y_offset + coord[1]][x_offset + coord[0] + 1] == 1) {
+                    if(
+                        tetris_table[y_offset + coord[1]][x_offset + coord[0] + 1] != '' &&
+                        tetris_table[y_offset + coord[1]][x_offset + coord[0] + 1] != 'A'
+                    ) {
                         legal_block = false;
                         break;
                     }
@@ -315,7 +336,8 @@ class activeBlock {
                 if(y_offset + coord[1] >= 0) { 
                     if(
                         x_offset + coord[0] >= TETRIS_TABLE_COL || x_offset + coord[0] < 0 ||
-                        tetris_table[y_offset + coord[1]][x_offset + coord[0]] == 1
+                        (tetris_table[y_offset + coord[1]][x_offset + coord[0]] != '' &&
+                        tetris_table[y_offset + coord[1]][x_offset + coord[0]] != 'A')
                     ) {
                         legal_block = false;
                         break;
@@ -350,7 +372,6 @@ class activeBlock {
         if(this.settle) {
             for(var i = 0; i < this.block.block_coord.length; i++) {
                 var coord = this.block.block_coord[i];
-                var h = this.position[1] + coord[1];
                 if(this.position[1] + coord[1] < 0) {
                     return true;
                 }
@@ -386,13 +407,13 @@ function frame_manage() {
 
     for(var h = 0; h < TETRIS_TABLE_ROW; h++) {
         for(var w = 0; w < TETRIS_TABLE_COL; w++) {
-            if (tetris_table[h][w] != 0) {
+            if (tetris_table[h][w] != '') {
                 ctx.beginPath();
                 ctx.rect(tetris_area_offset + w * tetris_block_w, h * tetris_block_w, tetris_block_w, tetris_block_w);
-                ctx.fillStyle = "#FFFFFF";
-                ctx.fill();
+                ctx.fillStyle = BLOCK_TAG_TO_COLOR.get(tetris_table[h][w]);
                 ctx.lineWidth = 2;
-                ctx.strokeStyle = "000000";
+                ctx.strokeStyle = "#383838";
+                ctx.fill();
                 ctx.stroke();
                 ctx.closePath();
             }
