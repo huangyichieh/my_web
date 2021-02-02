@@ -14,7 +14,6 @@ const STATIC_BLOCK_TAG_L = 'L';
 const STATIC_BLOCK_TAG_J = 'J';
 const STATIC_BLOCK_TAG_T = 'T';
 const BLOCK_TAG_TO_COLOR = new Map([
-    [ACTIVE_BLOCK_TAG, "#FFFFFF"],
     [STATIC_BLOCK_TAG_o, "#FFFF3C"],
     [STATIC_BLOCK_TAG_l, "#38FEFF"],
     [STATIC_BLOCK_TAG_s, "#19FF14"],
@@ -134,10 +133,10 @@ class tetrisBlockGenerator {
 }
 
 class activeBlock {
-    constructor(block) {
+    constructor(block, position=[0, 0]) {
         if (block instanceof tetrisBlock) {
             this.block = block;
-            this.position = [0, 0];
+            this.position = position;
             this.settle = false;
         }
         else {
@@ -368,7 +367,7 @@ class activeBlock {
         return 1;
     }
 
-    illegal_settle() {
+    illegalSettle() {
         if(this.settle) {
             for(var i = 0; i < this.block.block_coord.length; i++) {
                 var coord = this.block.block_coord[i];
@@ -378,6 +377,17 @@ class activeBlock {
             }
         }
         return false;
+    }
+
+    getCoords() {
+        var coord_arr = [];
+        for(var i = 0; i < this.block.block_coord.length; i++) {
+            var coord_x = this.block.block_coord[i][0] + this.position[0];
+            var coord_y = this.block.block_coord[i][1] + this.position[1];
+            coord_arr.push([coord_x, coord_y]);
+        }
+
+        return coord_arr;
     }
 }
 
@@ -405,15 +415,60 @@ function frame_manage() {
     ctx.fill();
     ctx.closePath();
 
+    // draw active block and static block
     for(var h = 0; h < TETRIS_TABLE_ROW; h++) {
         for(var w = 0; w < TETRIS_TABLE_COL; w++) {
             if (tetris_table[h][w] != '') {
+                var block_color = tetris_table[h][w] == 'A'? active_block.block.block_tag : tetris_table[h][w];
+
                 ctx.beginPath();
                 ctx.rect(tetris_area_offset + w * tetris_block_w, h * tetris_block_w, tetris_block_w, tetris_block_w);
-                ctx.fillStyle = BLOCK_TAG_TO_COLOR.get(tetris_table[h][w]);
+                ctx.fillStyle = BLOCK_TAG_TO_COLOR.get(block_color);
                 ctx.lineWidth = 2;
                 ctx.strokeStyle = "#383838";
                 ctx.fill();
+                ctx.stroke();
+                ctx.closePath();
+            }
+        }
+    }
+    
+    // draw preview settled block
+    if (active_block != null && active_block.settle == false) {
+        var active_coords = active_block.getCoords();
+        var max_y_offset = 0;
+        for(;; max_y_offset++) {
+            var legal_block = true;
+            for(var i = 0; i < active_coords.length; i++) {
+                var w = active_coords[i][0];
+                var h = active_coords[i][1] + max_y_offset;
+                
+                if(h >= 0) {
+                    if(
+                        h >= TETRIS_TABLE_ROW || 
+                        tetris_table[h][w] != '' && tetris_table[h][w] != 'A'
+                    ) {
+                        legal_block = false;
+                        max_y_offset--;
+                        break;
+                    }
+                }
+            }
+
+            if(legal_block == false) {
+                break;
+            }
+        }
+
+        for(var i = 0; i < active_coords.length; i++) {
+            var w = active_coords[i][0];
+            var h = active_coords[i][1] + max_y_offset;
+
+            if(tetris_table[h][w] == '') {
+                ctx.beginPath();
+                ctx.rect(tetris_area_offset + w * tetris_block_w, h * tetris_block_w, tetris_block_w, tetris_block_w);
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = BLOCK_TAG_TO_COLOR.get(active_block.block.block_tag);
                 ctx.stroke();
                 ctx.closePath();
             }
@@ -430,9 +485,10 @@ function frame_manage() {
         else {
             frame_count++;
             if(frame_count >= TETRIS_SPEED) {
-                var is_block_active = active_block.down();
+                var is_block_active = active_block.down(); // move down block
                 if(is_block_active == 0) {
-                    if(active_block.illegal_settle()) {
+                    // check game over
+                    if(active_block.illegalSettle()) {
                         game_status = -1;
                     }
                     else {
@@ -446,7 +502,7 @@ function frame_manage() {
                             }
                             if(complete_row) {
                                 tetris_table.splice(h, 1);
-                                tetris_table.unshift([0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+                                tetris_table.unshift(['', '', '', '', '', '', '', '', '', '']);
                             }
                         }
                         // reset block
